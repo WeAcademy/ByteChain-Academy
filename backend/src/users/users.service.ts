@@ -7,7 +7,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan, Like } from 'typeorm';
+import { ILike, Repository, MoreThan, Like } from 'typeorm';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../auth/dto/register.dto';
@@ -25,6 +25,16 @@ type AvatarUploadFile = {
   mimetype: string;
   originalname: string;
   buffer: Buffer;
+};
+
+export type PublicProfileDto = {
+  id: string;
+  username: string | null;
+  xp: number;
+  badgesCount: number;
+  coursesCompleted: number;
+  avatarUrl: string | null;
+  bio: string | null;
 };
 
 @Injectable()
@@ -134,6 +144,23 @@ export class UserService {
   private resolveXp(user: User): number {
     if ((user.xp ?? 0) > 0) return user.xp;
     return user.points ?? 0;
+  }
+
+  /**
+   * Maps a User entity and its badge count to the public profile shape.
+   * Centralises the mapping so that getPublicProfile() and findByUsername()
+   * stay in sync without duplicating the field list.
+   */
+  private toPublicProfile(user: User, badgesCount: number): PublicProfileDto {
+    return {
+      id: user.id,
+      username: user.username ?? user.name ?? null,
+      xp: this.resolveXp(user),
+      badgesCount,
+      coursesCompleted: user.coursesCompleted ?? 0,
+      avatarUrl: user.avatarUrl ?? null,
+      bio: user.bio ?? null,
+    };
   }
 
   async getProfile(userId: string): Promise<User> {
@@ -310,29 +337,32 @@ export class UserService {
     };
   }
 
-  async getPublicProfile(userId: string): Promise<{
-    id: string;
-    username: string | null;
-    xp: number;
-    badgesCount: number;
-    coursesCompleted: number;
-    avatarUrl: string | null;
-    bio: string | null;
-  }> {
+  async getPublicProfile(userId: string): Promise<PublicProfileDto> {
     const user = await this.getProfile(userId);
     const badgesCount = await this.userBadgeRepository.count({
       where: { userId },
     });
 
-    return {
-      id: user.id,
-      username: user.username ?? user.name ?? null,
-      xp: this.resolveXp(user),
-      badgesCount,
-      coursesCompleted: user.coursesCompleted ?? 0,
-      avatarUrl: user.avatarUrl ?? null,
-      bio: user.bio ?? null,
-    };
+    return this.toPublicProfile(user, badgesCount);
+  }
+
+  async findByUsername(username: string): Promise<PublicProfileDto> {
+    // username is not enforced as UNIQUE at the DB level; findOne returns the
+    // first match when duplicates exist. This is a known limitation — a future
+    // migration should add a UNIQUE constraint on the username column.
+    const user = await this.userRepository.findOne({
+      where: { username: ILike(username) },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const badgesCount = await this.userBadgeRepository.count({
+      where: { userId: user.id },
+    });
+
+    return this.toPublicProfile(user, badgesCount);
   }
 
   async adminListUsers(
