@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, BookOpen, Users, Star, User } from "lucide-react"
+import { Clock, BookOpen, Users, Star, User, CheckCircle2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
 import { SignUpModal } from "./auth/signup-modal"
@@ -19,6 +19,8 @@ interface CourseCardProps {
   lessons: number
   students: number
   instructor: string
+  enrollmentCount?: number
+  isEnrolled?: boolean
 }
 
 const difficultyColors = {
@@ -37,6 +39,8 @@ export function CourseCard({
   lessons,
   students,
   instructor,
+  enrollmentCount,
+  isEnrolled,
 }: CourseCardProps) {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
@@ -71,11 +75,19 @@ export function CourseCard({
       >
         <CardContent className="p-6 space-y-4">
           <div className="flex items-start justify-between">
-            <span
-              className={`px-1 py-0.5 rounded-full text-xs font-semibold ${difficultyColors[difficulty]}`}
-            >
-              {difficulty}
-            </span>
+            <div className="flex items-center gap-2">
+              <span
+                className={`px-1 py-0.5 rounded-full text-xs font-semibold ${difficultyColors[difficulty]}`}
+              >
+                {difficulty}
+              </span>
+              {isAuthenticated && isEnrolled && (
+                <span className="flex items-center gap-1 px-1 py-0.5 rounded-full text-xs font-semibold bg-[#03202c] text-[#00ff88]">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Enrolled
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-1 text-[#ffb601]">
               <Star className="w-4 h-4 fill-current" />
               <span className="text-sm font-medium text-white">{rating}</span>
@@ -98,7 +110,7 @@ export function CourseCard({
             </div>
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              <span>{students}</span>
+              <span>{enrollmentCount ?? students}</span>
             </div>
           </div>
 

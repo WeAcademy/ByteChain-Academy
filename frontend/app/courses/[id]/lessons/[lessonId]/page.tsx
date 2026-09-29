@@ -6,10 +6,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useLearning } from "@/contexts/learning-context"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, CheckCircle2, ChevronRight, ChevronLeft, FileQuestion } from "lucide-react"
+import { ArrowLeft, CheckCircle2, ChevronRight, ChevronLeft, Clock, FileQuestion } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import rehypeHighlight from "rehype-highlight"
 
 export default function LessonPage({
   params,
@@ -57,6 +60,20 @@ export default function LessonPage({
   const nextLesson = currentIndex < sortedLessons.length - 1 ? sortedLessons[currentIndex + 1] : null
   const prevLesson = currentIndex > 0 ? sortedLessons[currentIndex - 1] : null
 
+  const isVideo = lesson.type === "video"
+  const durationMinutes = lesson.duration ? Math.ceil(lesson.duration) : null
+  const durationLabel = durationMinutes
+    ? isVideo
+      ? `${durationMinutes} min video`
+      : `~${durationMinutes} min read`
+    : null
+
+  const videoSrc = lesson.videoUrl
+    ? lesson.videoStartTimestamp
+      ? `${lesson.videoUrl}${lesson.videoUrl.includes("?") ? "&" : "?"}start=${lesson.videoStartTimestamp}`
+      : lesson.videoUrl
+    : null
+
   const handleMarkComplete = async () => {
     const didComplete = await markLessonComplete(course.id, lesson.id)
     if (didComplete) {
@@ -95,32 +112,68 @@ export default function LessonPage({
           </Link>
         </div>
 
-        <Card className="mb-6">
-          <CardContent className="p-0">
-            {/* Video Player */}
-            <div className="relative w-full aspect-video bg-black rounded-t-xl overflow-hidden">
-              <iframe
-                src={lesson.videoUrl}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={lesson.title}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {isVideo && videoSrc && (
+          <Card className="mb-6">
+            <CardContent className="p-0">
+              {/* Video Player */}
+              <div className="relative w-full aspect-video bg-black rounded-t-xl overflow-hidden">
+                <iframe
+                  src={videoSrc}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={lesson.title}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <h1 className="text-3xl font-bold mb-2">{lesson.title}</h1>
-                <p className="text-gray-400">{lesson.description}</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {lesson.description && (
+                    <p className="text-gray-400">{lesson.description}</p>
+                  )}
+                  {durationLabel && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-[#00ff88] bg-[#00ff88]/10 px-2 py-1 rounded-full">
+                      <Clock className="w-3 h-3" />
+                      {durationLabel}
+                    </span>
+                  )}
+                </div>
               </div>
               {lesson.completed && (
                 <CheckCircle2 className="w-6 h-6 text-[#00ff88] flex-shrink-0 ml-4" />
               )}
             </div>
+
+            {lesson.content && (
+              <div className="border-t border-white/10 pt-6 mt-6">
+                {isVideo && (
+                  <h2 className="text-xl font-semibold mb-4">Notes</h2>
+                )}
+                <div className="prose prose-invert max-w-none prose-headings:text-white prose-a:text-[#00ff88] prose-code:text-[#00ff88] prose-pre:bg-[#111] prose-pre:border prose-pre:border-white/10">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeHighlight]}
+                    components={{
+                      a: ({ node, ...props }) => (
+                        <a {...props} target="_blank" rel="noopener noreferrer" />
+                      ),
+                      img: ({ node, ...props }) => (
+                        <img {...props} className="max-w-full h-auto rounded-lg" />
+                      ),
+                    }}
+                  >
+                    {lesson.content}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
 
             <div className="border-t border-white/10 pt-6 mt-6">
               <div className="flex flex-col sm:flex-row gap-4">
@@ -142,21 +195,33 @@ export default function LessonPage({
                     Completed
                   </Button>
                 )}
-
-                {lesson.hasQuiz && lesson.quizId && (
-                  <Button
-                    onClick={handleQuizClick}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <FileQuestion className="w-4 h-4 mr-2" />
-                    Take Quiz
-                  </Button>
-                )}
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {lesson.hasQuiz && lesson.quizId && (
+          <Card className="mt-6 border-[#00ff88]/30">
+            <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <FileQuestion className="w-6 h-6 text-[#00ff88] flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold">Test your knowledge</h3>
+                  <p className="text-sm text-gray-400">
+                    Take the quiz for this lesson to reinforce what you learned.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleQuizClick}
+                className="bg-[#00ff88] text-[#002E20] flex-shrink-0"
+              >
+                Take Quiz
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-6 gap-4">
@@ -170,7 +235,10 @@ export default function LessonPage({
               Previous Lesson
             </Button>
           ) : (
-            <div />
+            <Button variant="outline" disabled className="flex items-center gap-2 opacity-50">
+              <ChevronLeft className="w-4 h-4" />
+              Previous Lesson
+            </Button>
           )}
 
           {nextLesson ? (
