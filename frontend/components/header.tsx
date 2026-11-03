@@ -9,6 +9,7 @@ import { AccountDropdown } from "./account-dropdown";
 import { NavCounters } from "./nav-counters";
 import { NotificationDropdown } from "./notifications/notification-dropdown";
 import { MobileNav } from "./mobile-nav";
+import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/contexts/auth-context";
 import { useUser } from "@/contexts/user-context";
 import Link from "next/link";
@@ -55,6 +56,7 @@ export function Header() {
                   <Button variant="outline">Admin</Button>
                 </Link>
               )}
+              <ThemeToggle />
               <NavCounters />
               <NotificationDropdown />
               <Link href="/dashboard">
@@ -67,6 +69,7 @@ export function Header() {
             </>
           ) : (
             <>
+              <ThemeToggle />
               <Button variant="outline" onClick={() => setLoginOpen(true)}>
                 Log in
               </Button>
