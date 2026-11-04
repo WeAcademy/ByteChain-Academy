@@ -27,6 +27,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
 import { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { CurrenciesModule } from './currencies/currencies.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -123,6 +124,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
     EmailModule,
     CurrenciesModule,
     WebhooksModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [
