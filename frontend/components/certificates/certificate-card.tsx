@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  ShieldCheck, 
-  Download, 
-  Share2, 
-  Check, 
+import {
+  ShieldCheck,
+  Download,
   Loader2,
   Calendar,
-  Award
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/ui/share-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Certificate } from "@/hooks/use-certificates";
@@ -22,7 +21,6 @@ interface CertificateCardProps {
 
 export function CertificateCard({ certificate }: CertificateCardProps) {
   const [isDownloading, setIsDownloading] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -66,15 +64,11 @@ export function CertificateCard({ certificate }: CertificateCardProps) {
     }
   };
 
-  const handleShare = () => {
-    const verificationUrl = `${window.location.origin}/verify-certificate?hash=${certificate.certificateHash}`;
-    navigator.clipboard.writeText(verificationUrl);
-    setCopied(true);
-    toast.success("Verification link copied to clipboard!");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const isRevoked = certificate.status === "revoked";
+  const verificationUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/verify-certificate?hash=${certificate.certificateHash}`
+      : `/verify-certificate?hash=${certificate.certificateHash}`;
 
   return (
     <Card className={`overflow-hidden border-white/10 bg-[#0d0d0d] transition-all hover:border-green-500/30 ${isRevoked ? 'opacity-75 grayscale' : ''}`}>
@@ -103,15 +97,16 @@ export function CertificateCard({ certificate }: CertificateCardProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 md:self-center">
-            <Button
+            <ShareButton
+              title={`ByteChain Academy certificate: ${certificate.courseName}`}
+              text={`I earned a certificate for ${certificate.courseName} on ByteChain Academy.`}
+              url={verificationUrl}
+              label="Share"
+              copiedLabel="Copied"
               variant="outline"
               size="sm"
               className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-gray-300 gap-2"
-              onClick={handleShare}
-            >
-              {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-              {copied ? "Copied" : "Share"}
-            </Button>
+            />
             
             <Button
               variant="outline"
