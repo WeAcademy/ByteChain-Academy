@@ -42,7 +42,7 @@ jobs:
         run: npm run test --passWithNoTests
 
       - name: E2E Tests
-        run: npm run test:e2e --passWithNoTests
+        run: npm run test:e2e -- --runInBand --forceExit
 
   frontend:
     name: Frontend
@@ -76,7 +76,7 @@ jobs:
 
   frontend-e2e:
     name: Frontend E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       JWT_SECRET: ci-test-secret-minimum-32-characters-long
       NEXT_PUBLIC_API_URL: http://localhost:3001
@@ -91,14 +91,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci
-
-      - name: Start backend
-        working-directory: backend
-        run: npm run start:dev &
-        
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci

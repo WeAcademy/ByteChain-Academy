@@ -5,6 +5,7 @@ import { apiFetch } from "@/lib/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, signup, logout, forgotPassword, resetPassword }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading: false, login, signup, logout, forgotPassword, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
