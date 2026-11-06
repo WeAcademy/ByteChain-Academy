@@ -91,14 +91,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci
-
-      - name: Start backend
-        working-directory: backend
-        run: npm run start:dev &
-        
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
