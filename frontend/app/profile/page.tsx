@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { StatsSummary } from "@/components/profile/stats-summary";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
+import {
   ArrowLeft,
   Mail,
   Shield,
