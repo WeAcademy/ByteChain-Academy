@@ -9,6 +9,7 @@ import { AccountDropdown } from "./account-dropdown";
 import { NavCounters } from "./nav-counters";
 import { NotificationDropdown } from "./notifications/notification-dropdown";
 import { MobileNav } from "./mobile-nav";
+import { GlobalSearch } from "./search/global-search";
 import { useAuth } from "@/contexts/auth-context";
 import { useUser } from "@/contexts/user-context";
 import Link from "next/link";
@@ -48,6 +49,7 @@ export function Header() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-4">
+          <GlobalSearch />
           {isAuthenticated ? (
             <>
               {user?.role === "Admin" && (
@@ -79,6 +81,7 @@ export function Header() {
 
         {/* Mobile: show notification bell + account if authenticated */}
         <div className="flex md:hidden items-center gap-2">
+          <GlobalSearch />
           {isAuthenticated && (
             <>
               <NotificationDropdown />

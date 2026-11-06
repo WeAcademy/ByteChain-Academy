@@ -1,17 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 export interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  onCheckedChange?: (checked: boolean) => void;
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className, label, id, ...props }, ref) => {
+  ({ className, label, id, onCheckedChange, onChange, ...props }, ref) => {
     const generatedId = React.useId();
-    const generatedId = useId();
     const inputId = id || `checkbox-${generatedId}`;
 
     return (
@@ -30,6 +29,10 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             )}
             ref={ref}
             {...props}
+            onChange={(event) => {
+              onCheckedChange?.(event.target.checked);
+              onChange?.(event);
+            }}
           />
           <svg
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 text-[#002E20] pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
