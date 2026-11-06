@@ -123,3 +123,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * Theme-aware surface tokens used by the landing page and dashboard cards.
+ * They follow the class set by next-themes on <html>.
+ */
+:root {
+  --bg-primary: #f8fafc;
+  --text-primary: #0f172a;
+  --accent-strong: #00cc6a;
+}
+
+.dark {
+  --bg-primary: #0a0a0a;
+  --text-primary: #ffffff;
+  --accent-strong: #00ff88;
+}
